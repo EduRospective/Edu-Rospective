@@ -104,4 +104,266 @@ function Dashboard({ cursuri, elevi, anunturi }) {
 
 function TemplatesManager() {
   const templates = [
-    { id: "pdi", titlu: "Model PDI (Plan dezvoltare instituțională)", text: `Titlu PDI\nObiective..
+    { id: "pdi", titlu: "Model PDI (Plan dezvoltare instituțională)", text: `Titlu PDI\nObiective...\nIndicatori...\nActivități...` },
+    { id: "poa", titlu: "Model POA (Plan operațional anual)", text: `Titlu POA\nActivități anuale...\nResponsabili...` },
+    { id: "fise_autoevaluare", titlu: "Fișe autoevaluare (profesori/directori)", text: `Întrebări autoevaluare...` },
+    { id: "rae", titlu: "Structură Raport Autoevaluare Anual", text: `Sumar executiv...\nAnaliză calitate...` },
+  ];
+  function downloadText(t) {
+    const blob = new Blob([t.text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `${t.id}.txt`; a.click(); URL.revokeObjectURL(url);
+  }
+  return (
+    <div className="space-y-4">
+      <div className="p-4 border rounded">
+        <h3 className="font-semibold">Șabloane utile</h3>
+        <p className="text-sm text-zinc-600">Descărcați modele PDI / POA, fișe și RAE.</p>
+      </div>
+      <div className="p-4 border rounded space-y-2">
+        {templates.map(t=>(
+          <div key={t.id} className="flex items-center justify-between p-2 border rounded">
+            <div>
+              <div className="font-medium">{t.titlu}</div>
+              <div className="text-sm text-zinc-600">Descărcați sau copiați conținutul modelului.</div>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 border rounded text-sm" onClick={()=>downloadText(t)}>
+                <Download className="inline mr-2" />Descarcă
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EvaluariManager({ elevi }) {
+  const [intrebare, setIntrebare] = useState("");
+  const [formulare, setFormulare] = useState(loadFromStorage("formulare", []));
+  const [raspunsuri, setRaspunsuri] = useState(loadFromStorage("raspunsuri", {}));
+
+  function creeazaForm() {
+    if (!intrebare.trim()) return;
+    const f = { id: Date.now(), titlu: intrebare, created: new Date().toISOString() };
+    const nou = [f, ...formulare];
+    setFormulare(nou); saveToStorage("formulare", nou); setIntrebare("");
+  }
+
+  function submitDummyResponse(formId) {
+    const responses = elevi.map(e => ({ elevId: e.id, raspuns: "OK" }));
+    const all = { ...raspunsuri, [formId]: (raspunsuri[formId] || []).concat(responses) };
+    setRaspunsuri(all); saveToStorage("raspunsuri", all);
+    alert("Răspunsuri demo adăugate (pentru vizualizare).");
+  }
+
+  function exportFormResults(formId) {
+    const rows = ["formId,studentId,studentName,answer"];
+    const rowsArr = (raspunsuri[formId]||[]).map(r =>
+      [formId, r.elevId, `"${(elevi.find(e=>e.id===r.elevId)||{}).nume||""}"`, `"${r.raspuns}"`].join(",")
+    );
+    const blob = new Blob([rows.concat(rowsArr).join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `form_${formId}_results.csv`; a.click(); URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="p-4 border rounded">
+        <h3 className="font-semibold">Creează chestionar evaluativ</h3>
+        <input
+          placeholder="Titlu chestionar (ex: Feedback elevi - semestrul 1)"
+          value={intrebare}
+          onChange={e=>setIntrebare(e.target.value)}
+        />
+        <div className="mt-2">
+          <button className="px-3 py-1 border rounded text-sm" onClick={creeazaForm}>Creează</button>
+        </div>
+      </div>
+
+      <div className="p-4 border rounded">
+        <h3 className="font-semibold mb-2">Chestionare</h3>
+        {formulare.map(f=>(
+          <div key={f.id} className="p-2 border rounded mb-2 flex items-center justify-between">
+            <div>
+              <div className="font-medium">{f.titlu}</div>
+              <div className="text-xs text-zinc-500">Creat: {new Date(f.created).toLocaleString()}</div>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 border rounded text-sm" onClick={()=>submitDummyResponse(f.id)}>
+                Adaugă răspunsuri demo
+              </button>
+              <button className="px-3 py-1 border rounded text-sm" onClick={()=>exportFormResults(f.id)}>
+                <Export className="inline mr-2" />Export rezultate
+              </button>
+            </div>
+          </div>
+        ))}
+        {formulare.length===0 && <div className="text-sm text-zinc-500">Niciun chestionar creat.</div>}
+      </div>
+    </div>
+  );
+}
+
+function AnunturiManager({ anunturi, setAnunturi }) {
+  const [titlu, setTitlu] = useState("");
+  const [text, setText] = useState("");
+  function adauga() {
+    if (!titlu.trim()) return;
+    const item = { id: Date.now(), titlu, text, data: new Date().toISOString() };
+    const nou = [item, ...anunturi];
+    setAnunturi(nou); saveToStorage("anunturi", nou); setTitlu(""); setText("");
+  }
+  function exportAnnouncements() {
+    const rows = ["id,titlu,text,data"].concat(
+      anunturi.map(a => [a.id, `"${a.titlu}"`, `"${a.text}"`, a.data].join(","))
+    ).join("\n");
+    const blob = new Blob([rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "anunturi.csv"; a.click(); URL.revokeObjectURL(url);
+  }
+  return (
+    <div className="space-y-4">
+      <div className="p-4 border rounded">
+        <h3 className="font-semibold">Publică anunț</h3>
+        <input placeholder="Titlu" value={titlu} onChange={e=>setTitlu(e.target.value)} />
+        <textarea className="w-full mt-2" placeholder="Text" value={text} onChange={e=>setText(e.target.value)} />
+        <div className="mt-2 flex gap-2">
+          <button className="px-3 py-1 border rounded text-sm" onClick={adauga}>Publică</button>
+          <button className="px-3 py-1 border rounded text-sm" onClick={exportAnnouncements}>
+            <Download className="inline mr-2"/>Export CSV
+          </button>
+        </div>
+      </div>
+      <div className="p-4 border rounded">
+        {anunturi.map(a=> (
+          <div key={a.id} className="p-2 border rounded mb-2">
+            <div className="font-medium">{a.titlu}</div>
+            <div className="text-sm text-zinc-600">{a.text}</div>
+            <div className="text-xs text-zinc-500">{new Date(a.data).toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OrarManager() {
+  const [evenimente, setEvenimente] = useState(loadFromStorage("orar", []));
+  const [titlu, setTitlu] = useState("");
+  const [data, setData] = useState("");
+  function adauga() {
+    if (!titlu || !data) return;
+    const e = { id: Date.now(), titlu, data };
+    const nou = [e, ...evenimente];
+    setEvenimente(nou); saveToStorage("orar", nou); setTitlu(""); setData("");
+  }
+  function exportCalendar() {
+    const rows = ["id,titlu,data"].concat(
+      evenimente.map(e => [e.id, `"${e.titlu}"`, e.data].join(","))
+    ).join("\n");
+    const blob = new Blob([rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "calendar.csv"; a.click(); URL.revokeObjectURL(url);
+  }
+  return (
+    <div className="space-y-4">
+      <div className="p-4 border rounded">
+        <input placeholder="Titlu eveniment" value={titlu} onChange={e=>setTitlu(e.target.value)} />
+        <input placeholder="Data (YYYY-MM-DD)" value={data} onChange={e=>setData(e.target.value)} />
+        <div className="mt-2 flex gap-2">
+          <button className="px-3 py-1 border rounded text-sm" onClick={adauga}>Adaugă eveniment</button>
+          <button className="px-3 py-1 border rounded text-sm" onClick={exportCalendar}>
+            <Download className="inline mr-2"/>Export CSV
+          </button>
+        </div>
+      </div>
+      <div className="p-4 border rounded">
+        {evenimente.map(ev=> (
+          <div key={ev.id} className="p-2 border rounded mb-2">
+            <div className="font-medium">{ev.titlu}</div>
+            <div className="text-xs text-zinc-500">{ev.data}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Edurospective() {
+  const [user, setUser] = useState(loadFromStorage("user", { name: "Profesor (demo)" }));
+  const [view, setView] = useState("dashboard");
+
+  const [cursuri, setCursuri] = useState(loadFromStorage("cursuri", initialCursuri));
+  const [elevi, setElevi] = useState(loadFromStorage("elevi", initialElevi));
+  const [anunturi, setAnunturi] = useState(loadFromStorage("anunturi", initialAnunturi));
+  const [teme, setTeme] = useState(loadFromStorage("teme", []));
+
+  useEffect(()=> saveToStorage("cursuri", cursuri), [cursuri]);
+  useEffect(()=> saveToStorage("elevi", elevi), [elevi]);
+  useEffect(()=> saveToStorage("anunturi", anunturi), [anunturi]);
+  useEffect(()=> saveToStorage("teme", teme), [teme]);
+
+  function logout(){ localStorage.removeItem("user"); setUser(null); }
+  if (!user) {
+    return (
+      <div className="min-h-screen grid place-items-center">
+        <div className="w-full max-w-md p-6 border rounded">
+          <h2 className="text-2xl font-semibold mb-4">Autentificare profesori — Edurospective</h2>
+          <input placeholder="Email" className="w-full mb-2" />
+          <input placeholder="Parolă" type="password" className="w-full mb-4" />
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border rounded" onClick={()=>{
+              const demo = { name: "Prof. Demo" };
+              setUser(demo); saveToStorage("user", demo);
+            }}>Autentificare demo</button>
+            <button className="px-3 py-1 border rounded" onClick={()=>{ alert("Pentru autentificare reală putem integra OAuth / LDAP / SSO."); }}>Ajutor</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen grid grid-cols-[260px_1fr]">
+      <Sidebar view={view} setView={setView} />
+      <main className="p-6">
+        <Header user={user} onLogout={logout} />
+        <div className="mt-4">
+          {view==="dashboard" && <Dashboard cursuri={cursuri} elevi={elevi} anunturi={anunturi} />}
+          {view==="templates" && <TemplatesManager />}
+          {view==="evaluari" && <EvaluariManager elevi={elevi} />}
+          {view==="anunturi" && <AnunturiManager anunturi={anunturi} setAnunturi={setAnunturi} />}
+          {view==="orar" && <OrarManager />}
+          {view==="directori" && (
+            <div className="p-4 border rounded">
+              <h3 className="font-semibold">Instrumente pentru directori</h3>
+              <ul className="list-disc pl-5 text-sm">
+                <li>Checklist audit intern</li>
+                <li>Module observare lecții</li>
+                <li>Rapoarte automate (sumar exportabil)</li>
+              </ul>
+            </div>
+          )}
+          {view==="setari" && (
+            <div className="p-4 border rounded">
+              <h3 className="font-semibold">Setări platformă</h3>
+              <p className="text-sm text-zinc-600 mt-2">Opțiuni: export date, personalizare branding, integrare autentificare (LDAP, OAuth), backup automat.</p>
+              <div className="mt-4">
+                <button className="px-3 py-1 border rounded text-sm" onClick={()=>{
+                  const data = { cursuri, elevi, anunturi, teme };
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a"); a.href = url; a.download = "backup_edurospective.json"; a.click(); URL.revokeObjectURL(url);
+                }}>
+                  <Download className="inline mr-2"/>Descarcă backup
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
