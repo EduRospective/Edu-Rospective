@@ -1,20 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { BookOpen, Calendar, FileText, Users, Bell, LogOut, Download, Settings, Export } from "lucide-react";
-  BookOpen,
-  Calendar,
-  FileText,
-  Users,
-  Bell,
-  LogOut,
-  Download,
-  Settings,
-  Export,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
 
-/* =========================================================
-   Edurospective — Teacher platform (MVP complet)
-   ========================================================= */
+/* Edurospective – variantă stabilă (fără iconițe / animații) */
 
 function Logo({ size = 40 }) {
   const svg = `
@@ -38,66 +24,63 @@ const initialAnunturi = [
   { id: 1, titlu: "Ședință Consiliu Profesori", text: "Miercuri, ora 16:00 — sala profesori.", data: new Date().toISOString() },
 ];
 
-function saveToStorage(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
-function loadFromStorage(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } }
+function saveToStorage(k, v){ try{localStorage.setItem(k, JSON.stringify(v))}catch{} }
+function loadFromStorage(k, fb){ try{const v=localStorage.getItem(k); return v?JSON.parse(v):fb}catch{return fb} }
 
 function Header({ user, onLogout }) {
   return (
-    <header className="flex items-center justify-between p-4 border-b">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg grid place-items-center"><Logo/></div>
+    <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px",borderBottom:"1px solid #e5e5e5"}}>
+      <div style={{display:"flex",gap:12,alignItems:"center"}}>
+        <div style={{height:40,width:40,display:"grid",placeItems:"center"}}><Logo/></div>
         <div>
-          <div className="font-semibold">Edurospective</div>
-          <div className="text-sm text-zinc-600">Instrumente pentru calitate — doar profesori</div>
+          <div style={{fontWeight:600}}>Edurospective</div>
+          <div style={{fontSize:12,color:"#666"}}>Instrumente pentru calitate — doar profesori</div>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="text-sm">{user.name}</div>
-        <button className="px-3 py-1 border rounded text-sm" onClick={onLogout}>
-          <LogOut className="inline mr-2 h-4 w-4" />Deconectare
-        </button>
+      <div style={{display:"flex",gap:12,alignItems:"center"}}>
+        <div style={{fontSize:14}}>{user.name}</div>
+        <button onClick={onLogout} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Deconectare</button>
       </div>
     </header>
   );
 }
 
 function Sidebar({ view, setView }) {
-  const Btn = ({ v, icon, children }) => (
-    <button className={`block w-full text-left p-2 rounded ${view===v?'bg-indigo-50':''}`} onClick={()=>setView(v)}>
-      {icon}{children}
-    </button>
+  const Btn = ({ v, children }) => (
+    <button
+      onClick={()=>setView(v)}
+      style={{
+        display:"block", width:"100%", textAlign:"left", padding:8, borderRadius:8,
+        background: view===v ? "#eef2ff" : "transparent", border:"1px solid #eee", marginBottom:8
+      }}
+    >{children}</button>
   );
   return (
-    <aside className="w-64 border-r p-4">
-      <nav className="space-y-2">
+    <aside style={{width:260, borderRight:"1px solid #eee", padding:16}}>
+      <nav>
         <Btn v="dashboard">Dashboard</Btn>
-        <Btn v="templates" icon={<FileText className="inline mr-2" />}>Șabloane PDI/POA</Btn>
-        <Btn v="evaluari" icon={<BookOpen className="inline mr-2" />}>Evaluări & Fișe</Btn>
-        <Btn v="anunturi" icon={<Bell className="inline mr-2" />}>Anunțuri</Btn>
-        <Btn v="orar" icon={<Calendar className="inline mr-2" />}>Calendar</Btn>
-        <Btn v="directori" icon={<Users className="inline mr-2" />}>Instrumente Director</Btn>
-        <Btn v="setari" icon={<Settings className="inline mr-2" />}>Setări</Btn>
+        <Btn v="templates">Șabloane PDI/POA</Btn>
+        <Btn v="evaluari">Evaluări & Fișe</Btn>
+        <Btn v="anunturi">Anunțuri</Btn>
+        <Btn v="orar">Calendar</Btn>
+        <Btn v="directori">Instrumente Director</Btn>
+        <Btn v="setari">Setări</Btn>
       </nav>
     </aside>
   );
 }
 
 function Dashboard({ cursuri, elevi, anunturi }) {
+  const Card = ({ label, value }) => (
+    <div style={{padding:16, border:"1px solid #eee", borderRadius:8}}>
+      {label}<br/><strong>{value}</strong>
+    </div>
+  );
   return (
-    <div className="space-y-4">
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-3 gap-4">
-        <div className="p-4 border rounded">Cursuri<br/><strong>{cursuri.length}</strong></div>
-        <div className="p-4 border rounded">Elevi<br/><strong>{elevi.length}</strong></div>
-        <div className="p-4 border rounded">Anunțuri<br/><strong>{anunturi.length}</strong></div>
-      </motion.div>
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold mb-2">Instrumente rapide</h3>
-        <ul className="list-disc pl-5 text-sm">
-          <li>Generator PDI (șabloane descărcabile)</li>
-          <li>Checklist audit intern</li>
-          <li>Chestionare evaluare (elevi/părinți/profesori)</li>
-        </ul>
-      </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
+      <Card label="Cursuri" value={cursuri.length}/>
+      <Card label="Elevi" value={elevi.length}/>
+      <Card label="Anunțuri" value={anunturi.length}/>
     </div>
   );
 }
@@ -115,26 +98,16 @@ function TemplatesManager() {
     const a = document.createElement("a"); a.href = url; a.download = `${t.id}.txt`; a.click(); URL.revokeObjectURL(url);
   }
   return (
-    <div className="space-y-4">
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold">Șabloane utile</h3>
-        <p className="text-sm text-zinc-600">Descărcați modele PDI / POA, fișe și RAE.</p>
-      </div>
-      <div className="p-4 border rounded space-y-2">
-        {templates.map(t=>(
-          <div key={t.id} className="flex items-center justify-between p-2 border rounded">
-            <div>
-              <div className="font-medium">{t.titlu}</div>
-              <div className="text-sm text-zinc-600">Descărcați sau copiați conținutul modelului.</div>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded text-sm" onClick={()=>downloadText(t)}>
-                <Download className="inline mr-2" />Descarcă
-              </button>
-            </div>
+    <div style={{display:"grid",gap:12}}>
+      {templates.map(t=>(
+        <div key={t.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:12,border:"1px solid #eee",borderRadius:8}}>
+          <div>
+            <div style={{fontWeight:600}}>{t.titlu}</div>
+            <div style={{fontSize:12,color:"#666"}}>Descărcați sau copiați conținutul modelului.</div>
           </div>
-        ))}
-      </div>
+          <button onClick={()=>downloadText(t)} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Descarcă</button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -150,14 +123,12 @@ function EvaluariManager({ elevi }) {
     const nou = [f, ...formulare];
     setFormulare(nou); saveToStorage("formulare", nou); setIntrebare("");
   }
-
   function submitDummyResponse(formId) {
     const responses = elevi.map(e => ({ elevId: e.id, raspuns: "OK" }));
     const all = { ...raspunsuri, [formId]: (raspunsuri[formId] || []).concat(responses) };
     setRaspunsuri(all); saveToStorage("raspunsuri", all);
     alert("Răspunsuri demo adăugate (pentru vizualizare).");
   }
-
   function exportFormResults(formId) {
     const rows = ["formId,studentId,studentName,answer"];
     const rowsArr = (raspunsuri[formId]||[]).map(r =>
@@ -169,38 +140,29 @@ function EvaluariManager({ elevi }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold">Creează chestionar evaluativ</h3>
-        <input
-          placeholder="Titlu chestionar (ex: Feedback elevi - semestrul 1)"
-          value={intrebare}
-          onChange={e=>setIntrebare(e.target.value)}
-        />
-        <div className="mt-2">
-          <button className="px-3 py-1 border rounded text-sm" onClick={creeazaForm}>Creează</button>
+    <div style={{display:"grid",gap:16}}>
+      <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
+        <h3 style={{margin:"0 0 8px 0"}}>Creează chestionar evaluativ</h3>
+        <input placeholder="Titlu chestionar" value={intrebare} onChange={e=>setIntrebare(e.target.value)} />
+        <div style={{marginTop:8}}>
+          <button onClick={creeazaForm} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Creează</button>
         </div>
       </div>
-
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold mb-2">Chestionare</h3>
+      <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
+        <h3 style={{margin:"0 0 8px 0"}}>Chestionare</h3>
         {formulare.map(f=>(
-          <div key={f.id} className="p-2 border rounded mb-2 flex items-center justify-between">
+          <div key={f.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:12,border:"1px solid #eee",borderRadius:8,marginBottom:8}}>
             <div>
-              <div className="font-medium">{f.titlu}</div>
-              <div className="text-xs text-zinc-500">Creat: {new Date(f.created).toLocaleString()}</div>
+              <div style={{fontWeight:600}}>{f.titlu}</div>
+              <div style={{fontSize:12,color:"#666"}}>Creat: {new Date(f.created).toLocaleString()}</div>
             </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded text-sm" onClick={()=>submitDummyResponse(f.id)}>
-                Adaugă răspunsuri demo
-              </button>
-              <button className="px-3 py-1 border rounded text-sm" onClick={()=>exportFormResults(f.id)}>
-                <Export className="inline mr-2" />Export rezultate
-              </button>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>submitDummyResponse(f.id)} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Răspunsuri demo</button>
+              <button onClick={()=>exportFormResults(f.id)} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Export rezultate</button>
             </div>
           </div>
         ))}
-        {formulare.length===0 && <div className="text-sm text-zinc-500">Niciun chestionar creat.</div>}
+        {formulare.length===0 && <div style={{fontSize:12,color:"#666"}}>Niciun chestionar creat.</div>}
       </div>
     </div>
   );
@@ -209,39 +171,29 @@ function EvaluariManager({ elevi }) {
 function AnunturiManager({ anunturi, setAnunturi }) {
   const [titlu, setTitlu] = useState("");
   const [text, setText] = useState("");
-  function adauga() {
-    if (!titlu.trim()) return;
-    const item = { id: Date.now(), titlu, text, data: new Date().toISOString() };
-    const nou = [item, ...anunturi];
-    setAnunturi(nou); saveToStorage("anunturi", nou); setTitlu(""); setText("");
-  }
-  function exportAnnouncements() {
-    const rows = ["id,titlu,text,data"].concat(
-      anunturi.map(a => [a.id, `"${a.titlu}"`, `"${a.text}"`, a.data].join(","))
-    ).join("\n");
+  function adauga(){ if(!titlu.trim())return; const item={id:Date.now(), titlu, text, data:new Date().toISOString()}; const nou=[item,...anunturi]; setAnunturi(nou); saveToStorage("anunturi", nou); setTitlu(""); setText(""); }
+  function exportAnnouncements(){
+    const rows = ["id,titlu,text,data"].concat(anunturi.map(a=>[a.id,`"${a.titlu}"`,`"${a.text}"`,a.data].join(","))).join("\n");
     const blob = new Blob([rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "anunturi.csv"; a.click(); URL.revokeObjectURL(url);
+    const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="anunturi.csv"; a.click(); URL.revokeObjectURL(url);
   }
   return (
-    <div className="space-y-4">
-      <div className="p-4 border rounded">
-        <h3 className="font-semibold">Publică anunț</h3>
+    <div style={{display:"grid",gap:16}}>
+      <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
+        <h3 style={{margin:"0 0 8px 0"}}>Publică anunț</h3>
         <input placeholder="Titlu" value={titlu} onChange={e=>setTitlu(e.target.value)} />
-        <textarea className="w-full mt-2" placeholder="Text" value={text} onChange={e=>setText(e.target.value)} />
-        <div className="mt-2 flex gap-2">
-          <button className="px-3 py-1 border rounded text-sm" onClick={adauga}>Publică</button>
-          <button className="px-3 py-1 border rounded text-sm" onClick={exportAnnouncements}>
-            <Download className="inline mr-2"/>Export CSV
-          </button>
+        <textarea placeholder="Text" value={text} onChange={e=>setText(e.target.value)} style={{display:"block",width:"100%",marginTop:8}} />
+        <div style={{marginTop:8, display:"flex", gap:8}}>
+          <button onClick={adauga} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Publică</button>
+          <button onClick={exportAnnouncements} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Export CSV</button>
         </div>
       </div>
-      <div className="p-4 border rounded">
+      <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
         {anunturi.map(a=> (
-          <div key={a.id} className="p-2 border rounded mb-2">
-            <div className="font-medium">{a.titlu}</div>
-            <div className="text-sm text-zinc-600">{a.text}</div>
-            <div className="text-xs text-zinc-500">{new Date(a.data).toLocaleString()}</div>
+          <div key={a.id} style={{padding:12,border:"1px solid #eee",borderRadius:8, marginBottom:8}}>
+            <div style={{fontWeight:600}}>{a.titlu}</div>
+            <div style={{fontSize:14,color:"#444"}}>{a.text}</div>
+            <div style={{fontSize:11,color:"#666"}}>{new Date(a.data).toLocaleString()}</div>
           </div>
         ))}
       </div>
@@ -253,37 +205,27 @@ function OrarManager() {
   const [evenimente, setEvenimente] = useState(loadFromStorage("orar", []));
   const [titlu, setTitlu] = useState("");
   const [data, setData] = useState("");
-  function adauga() {
-    if (!titlu || !data) return;
-    const e = { id: Date.now(), titlu, data };
-    const nou = [e, ...evenimente];
-    setEvenimente(nou); saveToStorage("orar", nou); setTitlu(""); setData("");
-  }
-  function exportCalendar() {
-    const rows = ["id,titlu,data"].concat(
-      evenimente.map(e => [e.id, `"${e.titlu}"`, e.data].join(","))
-    ).join("\n");
-    const blob = new Blob([rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+  function adauga(){ if(!titlu||!data)return; const e={id:Date.now(), titlu, data}; const nou=[e,...evenimente]; setEvenimente(nou); saveToStorage("orar", nou); setTitlu(""); setData(""); }
+  function exportCalendar(){
+    const rows = ["id,titlu,data"].concat(evenimente.map(e=>[e.id,`"${e.titlu}"`,e.data].join(","))).join("\n");
+    const blob = new Blob([rows], { type: "text/csv" }); const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "calendar.csv"; a.click(); URL.revokeObjectURL(url);
   }
   return (
-    <div className="space-y-4">
-      <div className="p-4 border rounded">
+    <div style={{display:"grid",gap:16}}>
+      <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
         <input placeholder="Titlu eveniment" value={titlu} onChange={e=>setTitlu(e.target.value)} />
         <input placeholder="Data (YYYY-MM-DD)" value={data} onChange={e=>setData(e.target.value)} />
-        <div className="mt-2 flex gap-2">
-          <button className="px-3 py-1 border rounded text-sm" onClick={adauga}>Adaugă eveniment</button>
-          <button className="px-3 py-1 border rounded text-sm" onClick={exportCalendar}>
-            <Download className="inline mr-2"/>Export CSV
-          </button>
+        <div style={{marginTop:8, display:"flex", gap:8}}>
+          <button onClick={adauga} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Adaugă eveniment</button>
+          <button onClick={exportCalendar} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Export CSV</button>
         </div>
       </div>
-      <div className="p-4 border rounded">
+      <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
         {evenimente.map(ev=> (
-          <div key={ev.id} className="p-2 border rounded mb-2">
-            <div className="font-medium">{ev.titlu}</div>
-            <div className="text-xs text-zinc-500">{ev.data}</div>
+          <div key={ev.id} style={{padding:12,border:"1px solid #eee",borderRadius:8, marginBottom:8}}>
+            <div style={{fontWeight:600}}>{ev.titlu}</div>
+            <div style={{fontSize:11,color:"#666"}}>{ev.data}</div>
           </div>
         ))}
       </div>
@@ -294,7 +236,6 @@ function OrarManager() {
 export default function Edurospective() {
   const [user, setUser] = useState(loadFromStorage("user", { name: "Profesor (demo)" }));
   const [view, setView] = useState("dashboard");
-
   const [cursuri, setCursuri] = useState(loadFromStorage("cursuri", initialCursuri));
   const [elevi, setElevi] = useState(loadFromStorage("elevi", initialElevi));
   const [anunturi, setAnunturi] = useState(loadFromStorage("anunturi", initialAnunturi));
@@ -308,17 +249,14 @@ export default function Edurospective() {
   function logout(){ localStorage.removeItem("user"); setUser(null); }
   if (!user) {
     return (
-      <div className="min-h-screen grid place-items-center">
-        <div className="w-full max-w-md p-6 border rounded">
-          <h2 className="text-2xl font-semibold mb-4">Autentificare profesori — Edurospective</h2>
-          <input placeholder="Email" className="w-full mb-2" />
-          <input placeholder="Parolă" type="password" className="w-full mb-4" />
-          <div className="flex gap-2">
-            <button className="px-3 py-1 border rounded" onClick={()=>{
-              const demo = { name: "Prof. Demo" };
-              setUser(demo); saveToStorage("user", demo);
-            }}>Autentificare demo</button>
-            <button className="px-3 py-1 border rounded" onClick={()=>{ alert("Pentru autentificare reală putem integra OAuth / LDAP / SSO."); }}>Ajutor</button>
+      <div style={{minHeight:"100vh", display:"grid", placeItems:"center"}}>
+        <div style={{width:"100%", maxWidth:480, padding:24, border:"1px solid #eee", borderRadius:8, background:"#fff"}}>
+          <h2 style={{fontSize:22, fontWeight:600, marginBottom:16}}>Autentificare profesori — Edurospective</h2>
+          <input placeholder="Email" style={{display:"block", width:"100%", marginBottom:8}} />
+          <input placeholder="Parolă" type="password" style={{display:"block", width:"100%", marginBottom:16}} />
+          <div style={{display:"flex", gap:8}}>
+            <button onClick={()=>{ const demo = { name: "Prof. Demo" }; setUser(demo); saveToStorage("user", demo); }} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Autentificare demo</button>
+            <button onClick={()=>{ alert("Pentru autentificare reală putem integra OAuth / LDAP / SSO."); }} style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}>Ajutor</button>
           </div>
         </div>
       </div>
@@ -326,20 +264,20 @@ export default function Edurospective() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-[260px_1fr]">
+    <div style={{minHeight:"100vh", display:"grid", gridTemplateColumns:"260px 1fr"}}>
       <Sidebar view={view} setView={setView} />
-      <main className="p-6">
+      <main style={{padding:24}}>
         <Header user={user} onLogout={logout} />
-        <div className="mt-4">
+        <div style={{marginTop:16}}>
           {view==="dashboard" && <Dashboard cursuri={cursuri} elevi={elevi} anunturi={anunturi} />}
           {view==="templates" && <TemplatesManager />}
           {view==="evaluari" && <EvaluariManager elevi={elevi} />}
           {view==="anunturi" && <AnunturiManager anunturi={anunturi} setAnunturi={setAnunturi} />}
           {view==="orar" && <OrarManager />}
           {view==="directori" && (
-            <div className="p-4 border rounded">
+            <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
               <h3 className="font-semibold">Instrumente pentru directori</h3>
-              <ul className="list-disc pl-5 text-sm">
+              <ul>
                 <li>Checklist audit intern</li>
                 <li>Module observare lecții</li>
                 <li>Rapoarte automate (sumar exportabil)</li>
@@ -347,17 +285,20 @@ export default function Edurospective() {
             </div>
           )}
           {view==="setari" && (
-            <div className="p-4 border rounded">
-              <h3 className="font-semibold">Setări platformă</h3>
-              <p className="text-sm text-zinc-600 mt-2">Opțiuni: export date, personalizare branding, integrare autentificare (LDAP, OAuth), backup automat.</p>
-              <div className="mt-4">
-                <button className="px-3 py-1 border rounded text-sm" onClick={()=>{
-                  const data = { cursuri, elevi, anunturi, teme };
-                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a"); a.href = url; a.download = "backup_edurospective.json"; a.click(); URL.revokeObjectURL(url);
-                }}>
-                  <Download className="inline mr-2"/>Descarcă backup
+            <div style={{padding:16,border:"1px solid #eee",borderRadius:8}}>
+              <h3 style={{margin:"0 0 8px 0"}}>Setări platformă</h3>
+              <p style={{fontSize:14,color:"#555"}}>Opțiuni: export date, personalizare branding, integrare autentificare (LDAP, OAuth), backup automat.</p>
+              <div style={{marginTop:12}}>
+                <button
+                  onClick={()=>{
+                    const data = { cursuri, elevi, anunturi, teme };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = "backup_edurospective.json"; a.click(); URL.revokeObjectURL(url);
+                  }}
+                  style={{padding:"6px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12}}
+                >
+                  Descarcă backup
                 </button>
               </div>
             </div>
